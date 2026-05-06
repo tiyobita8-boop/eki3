@@ -2,43 +2,113 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>易経 卦計算 完全版</title>
+
 <style>
-body { font-family: sans-serif; text-align: center; }
-.box { margin: 8px; }
-.result { font-size: 22px; margin-top: 20px; font-weight: bold; }
+body{
+  font-family:sans-serif;
+  text-align:center;
+  background:#f7f7f7;
+  padding:20px;
+}
+
+.section{
+  background:white;
+  max-width:900px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.box{
+  margin:10px;
+  padding:10px;
+  background:#fafafa;
+  border-radius:10px;
+}
+
+button{
+  font-size:18px;
+  padding:12px 24px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:#4a90e2;
+  color:white;
+  margin:10px;
+}
+
+button:hover{
+  opacity:0.9;
+}
+
+.result{
+  font-size:22px;
+  margin-top:20px;
+  font-weight:bold;
+  line-height:1.8;
+}
+
+.output{
+  margin-top:15px;
+  line-height:1.8;
+  font-size:18px;
+}
+
+.coinLine{
+  background:#f0f8ff;
+  margin:6px auto;
+  padding:8px;
+  border-radius:8px;
+  max-width:500px;
+}
 </style>
 </head>
 
 <body>
-  <div class="section">
-    <h2>🪙 三枚コイン占い</h2>
-    <p>コインを6回投げて、易の卦を作ります。</p>
-    <button onclick="throwCoins()">コインを6回振る</button>
-    <div class="output" id="coinResult"></div>
-  </div>
 
-  <div class="section">
+<div class="section">
+  <h2>🪙 三枚コイン占い</h2>
+  <p>コインを6回投げて、易の卦を自動生成します。</p>
 
-  
+  <button onclick="throwCoins()">コインを6回振る</button>
+
+  <div class="output" id="coinResult"></div>
+</div>
+
+<div class="section">
+
 <h1>易経 卦計算</h1>
+
 <div id="inputs"></div>
+
 <button onclick="calc()">スタート</button>
 
 <div class="result" id="result"></div>
+
+</div>
 
 <script>
 
 // 八卦
 function trigram(lines){
   return {
-    "111":"乾","110":"兌","101":"離","100":"震",
-    "011":"巽","010":"坎","001":"艮","000":"坤"
+    "111":"乾",
+    "110":"兌",
+    "101":"離",
+    "100":"震",
+    "011":"巽",
+    "010":"坎",
+    "001":"艮",
+    "000":"坤"
   }[lines.join("")];
 }
 
-// 64卦（完全）
+// 64卦
 const hexMap = {
+
 "乾乾":"乾為天","坤坤":"坤為地","坎坎":"坎為水","離離":"離為火",
 "震震":"震為雷","艮艮":"艮為山","巽巽":"巽為風","兌兌":"兌為沢",
 
@@ -69,17 +139,78 @@ const hexMap = {
 let container = document.getElementById("inputs");
 
 for(let i=6;i>=1;i--){
+
   let div = document.createElement("div");
   div.className = "box";
 
   div.innerHTML = `
-  第${i}爻：
-  <label><input type="radio" name="l${i}" value="少陽">少陽</label>
-  <label><input type="radio" name="l${i}" value="少陰">少陰</label>
-  <label><input type="radio" name="l${i}" value="老陽">老陽</label>
-  <label><input type="radio" name="l${i}" value="老陰">老陰</label>
+    第${i}爻：
+    <label><input type="radio" name="l${i}" value="少陽">少陽</label>
+    <label><input type="radio" name="l${i}" value="少陰">少陰</label>
+    <label><input type="radio" name="l${i}" value="老陽">老陽</label>
+    <label><input type="radio" name="l${i}" value="老陰">老陰</label>
   `;
+
   container.appendChild(div);
+}
+
+// コイン占い
+function throwCoins(){
+
+  let resultHTML = "";
+
+  for(let i=6;i>=1;i--){
+
+    let coins = [];
+    let heads = 0;
+
+    for(let j=0;j<3;j++){
+
+      let coin = Math.random() < 0.5 ? "表" : "裏";
+
+      coins.push(coin);
+
+      if(coin === "表") heads++;
+    }
+
+    let type = "";
+
+    // 易の一般的な三枚コイン法
+    // 表=3点 裏=2点
+
+    let score = coins.reduce((sum,c)=>{
+      return sum + (c==="表" ? 3 : 2);
+    },0);
+
+    if(score === 9){
+      type = "老陽";
+    }else if(score === 8){
+      type = "少陰";
+    }else if(score === 7){
+      type = "少陽";
+    }else if(score === 6){
+      type = "老陰";
+    }
+
+    // ラジオ自動選択
+    let radio = document.querySelector(`input[name="l${i}"][value="${type}"]`);
+
+    if(radio){
+      radio.checked = true;
+    }
+
+    resultHTML += `
+      <div class="coinLine">
+        第${i}爻：
+        ${coins.join("＋")}
+        → <strong>${type}</strong>
+      </div>
+    `;
+  }
+
+  document.getElementById("coinResult").innerHTML = resultHTML;
+
+  calc();
 }
 
 // 計算
@@ -88,60 +219,81 @@ function calc(){
   let lines = [];
 
   for(let i=1;i<=6;i++){
-    let v = document.querySelector(`input[name="l${i}"]:checked`);
-    if(!v){ alert("全部選んで"); return; }
 
-    lines.push(v.value==="少陽"||v.value==="老陽" ? 1 : 0);
+    let v = document.querySelector(`input[name="l${i}"]:checked`);
+
+    if(!v){
+      alert("全部選んでください");
+      return;
+    }
+
+    lines.push(
+      v.value==="少陽" || v.value==="老陽"
+      ? 1
+      : 0
+    );
   }
 
   // 本卦
   let lower = trigram(lines.slice(0,3));
   let upper = trigram(lines.slice(3,6));
-  let main = hexMap[upper+lower];
 
-  // 之卦（変爻）
+  let main = hexMap[upper + lower] || "不明";
+
+  // 之卦
   let changed = [...lines];
 
   for(let i=0;i<6;i++){
+
     let v = document.querySelector(`input[name="l${i+1}"]:checked`).value;
+
     if(v==="老陽") changed[i]=0;
     if(v==="老陰") changed[i]=1;
   }
 
   let future = hexMap[
-    trigram(changed.slice(3,6)) + trigram(changed.slice(0,3))
-  ];
+    trigram(changed.slice(3,6)) +
+    trigram(changed.slice(0,3))
+  ] || "不明";
 
-  // 裏卦（陰陽反転）
+  // 裏卦
   let reverse = lines.map(v => v===1 ? 0 : 1);
 
   let ura = hexMap[
-    trigram(reverse.slice(3,6)) + trigram(reverse.slice(0,3))
-  ];
+    trigram(reverse.slice(3,6)) +
+    trigram(reverse.slice(0,3))
+  ] || "不明";
 
-  // 綜卦（上下逆）
+  // 綜卦
   let flip = [...lines].reverse();
 
   let sou = hexMap[
-    trigram(flip.slice(3,6)) + trigram(flip.slice(0,3))
-  ];
+    trigram(flip.slice(3,6)) +
+    trigram(flip.slice(0,3))
+  ] || "不明";
 
-  // 互卦（2-3-4 / 3-4-5）
+  // 互卦
   let go = [
-    lines[1],lines[2],lines[3],
-    lines[2],lines[3],lines[4]
+    lines[1],
+    lines[2],
+    lines[3],
+    lines[2],
+    lines[3],
+    lines[4]
   ];
 
   let ko = hexMap[
-    trigram(go.slice(3,6)) + trigram(go.slice(0,3))
-  ];
+    trigram(go.slice(3,6)) +
+    trigram(go.slice(0,3))
+  ] || "不明";
 
-  document.getElementById("result").innerHTML =
-    `☆本卦：${main}<br>
-     ☆之卦：${future}<br>
-     ☆裏卦：${ura}<br>
-     ☆綜卦：${sou}<br>
-     ☆互卦：${ko}`;
+  document.getElementById("result").innerHTML = `
+    ☆本卦：${main}<br>
+    ☆之卦：${future}<br>
+    ☆裏卦：${ura}<br>
+    ☆綜卦：${sou}<br>
+    ☆互卦：${ko}
+  `;
 }
 
 </script>
