@@ -5,7 +5,7 @@
 <title>易経 卦計算 完全版</title>
 <style>
 body { font-family: sans-serif; text-align: center; }
-.box { margin: 10px; }
+.box { margin: 8px; }
 .result { font-size: 22px; margin-top: 20px; font-weight: bold; }
 </style>
 </head>
@@ -13,9 +13,7 @@ body { font-family: sans-serif; text-align: center; }
 <body>
 
 <h1>易経 卦計算</h1>
-
 <div id="inputs"></div>
-
 <button onclick="calc()">スタート</button>
 
 <div class="result" id="result"></div>
@@ -24,52 +22,37 @@ body { font-family: sans-serif; text-align: center; }
 
 // 八卦
 function trigram(lines){
-  let key = lines.join("");
   return {
     "111":"乾","110":"兌","101":"離","100":"震",
     "011":"巽","010":"坎","001":"艮","000":"坤"
-  }[key];
+  }[lines.join("")];
 }
 
-// 64卦（完全版）
+// 64卦（完全）
 const hexMap = {
 "乾乾":"乾為天","坤坤":"坤為地","坎坎":"坎為水","離離":"離為火",
 "震震":"震為雷","艮艮":"艮為山","巽巽":"巽為風","兌兌":"兌為沢",
 
-"坎乾":"水天需","乾坎":"天水訟",
-"艮坎":"山水蒙","坎艮":"水山蹇",
-"震坎":"雷水解","坎震":"水雷屯",
-"巽坎":"風水渙","坎巽":"水風井",
-"離坎":"火水未済","坎離":"水火既済",
-"兌坎":"沢水困","坎兌":"水沢節",
-"坤坎":"地水師","坎坤":"水地比",
-"乾坤":"天地否","坤乾":"地天泰",
+"坎乾":"水天需","乾坎":"天水訟","艮坎":"山水蒙","坎艮":"水山蹇",
+"震坎":"雷水解","坎震":"水雷屯","巽坎":"風水渙","坎巽":"水風井",
+"離坎":"火水未済","坎離":"水火既済","兌坎":"沢水困","坎兌":"水沢節",
+"坤坎":"地水師","坎坤":"水地比","乾坤":"天地否","坤乾":"地天泰",
 
-"艮乾":"山天大畜","乾艮":"天山遯",
-"震乾":"雷天大壮","乾震":"天雷无妄",
-"巽乾":"風天小畜","乾巽":"天風姤",
-"離乾":"火天大有","乾離":"天火同人",
+"艮乾":"山天大畜","乾艮":"天山遯","震乾":"雷天大壮","乾震":"天雷无妄",
+"巽乾":"風天小畜","乾巽":"天風姤","離乾":"火天大有","乾離":"天火同人",
 "兌乾":"沢天夬","乾兌":"天沢履",
-"坤乾":"地天泰","乾坤":"天地否",
 
-"艮坤":"山地剥","坤艮":"地山謙",
-"震坤":"雷地豫","坤震":"地雷復",
-"巽坤":"風地観","坤巽":"地風升",
-"離坤":"火地晋","坤離":"地火明夷",
+"艮坤":"山地剥","坤艮":"地山謙","震坤":"雷地豫","坤震":"地雷復",
+"巽坤":"風地観","坤巽":"地風升","離坤":"火地晋","坤離":"地火明夷",
 "兌坤":"沢地萃","坤兌":"地沢臨",
 
-"艮震":"山雷頤","震艮":"雷山小過",
-"巽震":"風雷益","震巽":"雷風恒",
-"離震":"火雷噬嗑","震離":"雷火豊",
-"兌震":"沢雷随","震兌":"雷沢帰妹",
+"艮震":"山雷頤","震艮":"雷山小過","巽震":"風雷益","震巽":"雷風恒",
+"離震":"火雷噬嗑","震離":"雷火豊","兌震":"沢雷随","震兌":"雷沢帰妹",
 
-"艮巽":"山風蠱","巽艮":"風山漸",
-"離巽":"火風鼎","巽離":"風火家人",
+"艮巽":"山風蠱","巽艮":"風山漸","離巽":"火風鼎","巽離":"風火家人",
 "兌巽":"沢風大過","巽兌":"風沢中孚",
 
-"艮離":"山火賁","離艮":"火山旅",
-"兌離":"沢火革","離兌":"火沢睽",
-
+"艮離":"山火賁","離艮":"火山旅","兌離":"沢火革","離兌":"火沢睽",
 "艮兌":"山沢損","兌艮":"沢山咸"
 };
 
@@ -107,7 +90,7 @@ function calc(){
   let upper = trigram(lines.slice(3,6));
   let main = hexMap[upper+lower];
 
-  // 之卦
+  // 之卦（変爻）
   let changed = [...lines];
 
   for(let i=0;i<6;i++){
@@ -116,21 +99,40 @@ function calc(){
     if(v==="老陰") changed[i]=1;
   }
 
-  let lower2 = trigram(changed.slice(0,3));
-  let upper2 = trigram(changed.slice(3,6));
-  let future = hexMap[upper2+lower2];
+  let future = hexMap[
+    trigram(changed.slice(3,6)) + trigram(changed.slice(0,3))
+  ];
 
-  // 裏卦
+  // 裏卦（陰陽反転）
   let reverse = lines.map(v => v===1 ? 0 : 1);
 
-  let lower3 = trigram(reverse.slice(0,3));
-  let upper3 = trigram(reverse.slice(3,6));
-  let ura = hexMap[upper3+lower3];
+  let ura = hexMap[
+    trigram(reverse.slice(3,6)) + trigram(reverse.slice(0,3))
+  ];
+
+  // 綜卦（上下逆）
+  let flip = [...lines].reverse();
+
+  let sou = hexMap[
+    trigram(flip.slice(3,6)) + trigram(flip.slice(0,3))
+  ];
+
+  // 互卦（2-3-4 / 3-4-5）
+  let go = [
+    lines[1],lines[2],lines[3],
+    lines[2],lines[3],lines[4]
+  ];
+
+  let ko = hexMap[
+    trigram(go.slice(3,6)) + trigram(go.slice(0,3))
+  ];
 
   document.getElementById("result").innerHTML =
     `☆本卦：${main}<br>
      ☆之卦：${future}<br>
-     ☆裏卦：${ura}`;
+     ☆裏卦：${ura}<br>
+     ☆綜卦：${sou}<br>
+     ☆互卦：${ko}`;
 }
 
 </script>
